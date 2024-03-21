@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace TheServer
 {
@@ -16,6 +17,9 @@ namespace TheServer
     {
         Socket _lSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         Socket _cSocket = null;
+        Thread RXThread = null;
+        private const int GBufferSize = 1024;
+
         public ServerForm()
         {
             InitializeComponent();
@@ -64,6 +68,19 @@ namespace TheServer
             {
                 _cSocket = _lSock.EndAccept(ar);
 
+                try
+                {
+                    RXThread = new Thread(cbRXThread);
+                    RXThread.IsBackground = true;
+                    RXThread.Start();
+                }
+                catch (Exception error)
+                {
+
+                    Console.WriteLine($"cbAcceptDone : {error.Message}");
+                }
+
+
                 // if all goes well, a socket is created for you, and
                 // is connected to the remote end point.
                 // you must take custody of this socket!
@@ -90,5 +107,38 @@ namespace TheServer
             // if you don't want more connections, you should Close() the listener
             _lSock.Close();
         }
+
+        private void cbRXThread()
+        {
+            // bring the socket into a receiving state
+            while (true)
+            {
+                // rx just the bytes from this pass
+                byte[] transientbuff = new byte[GBufferSize];
+                try
+                {
+                    int iBytesRxed = _cSocket.Receive(transientbuff);
+                    
+                    if (iBytesRxed == 0)
+                    {
+                        // soft disco
+                        Console.WriteLine("RXThread : Disconnected softly");
+                        
+                        return;
+                    }
+                    // process data!
+                    Console.WriteLine($"Received {iBytesRxed} bytes");
+                    Console.WriteLine($"{Encoding.UTF8.GetString(transientbuff, 0, iBytesRxed)}");
+                }
+                catch (Exception err)
+                {
+                    // hard disco
+                    Console.WriteLine("RXThread : Disconnected THE HARD WAY");
+                    return;
+                }
+            }
+        }
     }
+
+    
 }

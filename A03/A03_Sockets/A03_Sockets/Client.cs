@@ -21,6 +21,15 @@ namespace A03_Sockets
         public MainForm()
         {
             InitializeComponent();
+            UI_SendBtn.Click += UI_SendBtn_Click;
+        }
+
+        private void UI_SendBtn_Click(object sender, EventArgs e)
+        {
+            string message = "This is a happy message :(";
+            byte[] data = Encoding.UTF8.GetBytes(message);
+            Console.WriteLine($"Sending {data.Length} bytes");
+            ConnSock.Send(data);
         }
 
         private void _btn_Click(object sender, EventArgs e)
@@ -50,6 +59,7 @@ namespace A03_Sockets
                 {
                     // update a control in the form, Invoke is required
                     Invoke(new Action(() => { Text = "Connected!"; }));
+                    //UI_SendBtn.Enabled = true;
 
                 }
                 catch (Exception e)
