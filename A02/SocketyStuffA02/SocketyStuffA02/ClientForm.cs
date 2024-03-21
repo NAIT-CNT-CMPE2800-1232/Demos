@@ -9,14 +9,15 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace SocketyStuffA02
 {
-    public partial class Form1 : Form
+    public partial class ClientForm : Form
     {
         Socket _Client = null;
 
-        public Form1()
+        public ClientForm()
         {
             InitializeComponent();
             _ConnectButton.Click += _ConnectButton_Click;
@@ -33,7 +34,7 @@ namespace SocketyStuffA02
 
             _Client.BeginConnect
             (
-                "www.microsoft.com", // target address (a string, supports DNS lookup)
+                "localhost", // target address (a string, supports DNS lookup)
                 1666, // target port
                 cbCallback, // callback function when operation completes
                 null
@@ -62,6 +63,23 @@ namespace SocketyStuffA02
                 Console.WriteLine(endConnectError.Message);
             }
 
+        }
+
+        private void UI_btn_send_Click(object sender, EventArgs e)
+        {
+            string message = "Hello from the client";
+            byte[] data = Encoding.UTF8.GetBytes(message);
+
+            try
+            {
+                _Client.Send(data);
+                _Client.Send(data);
+                Trace.WriteLine(data.Length);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Error sending data {ex.Message}");
+            }
         }
     }
 }
